@@ -1,0 +1,52 @@
+model Resource {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  module      String?
+  state       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permisos Permission[]
+
+  @@index([name])
+  @@index([module])
+  @@index([state])
+}
+
+model Permission {
+  id          String     @id @default(uuid())
+  resourceId  String
+  action      ActionType
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  resource Resource           @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  roles    RolHasPermission[]
+
+  @@unique([resourceId, action])
+  @@index([resourceId])
+  @@index([action])
+}
+
+model RolHasPermission {
+  rolId        String
+  permissionId String
+  state        Boolean  @default(true)
+  createdBy    String?
+  modifiedBy   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  rol        Rol        @relation(fields: [rolId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  creator    User?      @relation("PermissionCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  modifier   User?      @relation("PermissionModifiedBy", fields: [modifiedBy], references: [id], onDelete: SetNull)
+
+  @@id([rolId, permissionId])
+  @@index([rolId])
+  @@index([permissionId])
+  @@index([state])
+  @@index([createdBy])
+}

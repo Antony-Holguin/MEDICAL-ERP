@@ -1,0 +1,59 @@
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  lastName      String
+  email         String   @unique
+  emailHash     String   @unique
+  emailVerified Boolean  @default(false)
+  password      String
+  phone         String?
+  state         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  roles               UserRol[]
+  assignedRoles       UserRol[]          @relation("AssignedBy")
+  createdPermissions  RolHasPermission[] @relation("PermissionCreatedBy")
+  modifiedPermissions RolHasPermission[] @relation("PermissionModifiedBy")
+  auditLogs           AuditLog[]         @relation("AuditUser")
+
+  @@index([email])
+  @@index([emailHash])
+  @@index([state])
+}
+
+model Rol {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String   @unique
+  description String?
+  state       Boolean  @default(true)
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users    UserRol[]
+  permisos RolHasPermission[]
+
+  @@index([code])
+  @@index([state])
+  @@index([isSystem])
+}
+
+model UserRol {
+  id         String   @id @default(uuid())
+  userId     String
+  rolId      String
+  assignedBy String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user           User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rol            Rol   @relation(fields: [rolId], references: [id], onDelete: Cascade)
+  assignedByUser User? @relation("AssignedBy", fields: [assignedBy], references: [id], onDelete: SetNull)
+
+  @@unique([userId, rolId])
+  @@index([userId])
+  @@index([rolId])
+  @@index([assignedBy])
+}

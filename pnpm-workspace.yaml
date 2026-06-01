@@ -1,0 +1,16 @@
+allowBuilds:
+  '@nestjs/core': false
+  '@prisma/client': false
+  '@prisma/engines': false
+  '@scarf/scarf': false
+  argon2: false
+  msgpackr-extract: false
+  prisma: false
+ignoredBuiltDependencies:
+  - '@nestjs/core'
+  - '@prisma/client'
+  - '@prisma/engines'
+  - '@scarf/scarf'
+  - argon2
+  - msgpackr-extract
+  - prisma
