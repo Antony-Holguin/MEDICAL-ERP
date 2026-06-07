@@ -1,6 +1,6 @@
 model AuditLog {
-  id        String   @id @default(uuid())
-  userId    String?
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt?
   action    String
   entity    String
   entityId  String?
@@ -21,7 +21,7 @@ model AuditLog {
 }
 
 model SystemLog {
-  id        String   @id @default(uuid())
+  id        BigInt   @id @default(autoincrement())
   level     LogLevel
   message   String
   service   String?

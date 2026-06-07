@@ -1072,6 +1072,113 @@ npx prisma generate
 
 ---
 
+## 15. Problemas comunes
+
+### `DATABASE_URL` no encontrado al correr comandos Prisma
+
+**Síntoma:**
+```
+Error: Environment variable not found: DATABASE_URL
+```
+
+**Causa:** Cuando existe `prisma.config.ts`, Prisma 6+ **deja de cargar el `.env` automáticamente**.
+
+**Solución:** Agregar `import 'dotenv/config'` en `prisma.config.ts`:
+
+```typescript
+import path from 'node:path';
+import { defineConfig } from 'prisma/config';
+import 'dotenv/config'; // ← carga el .env manualmente
+
+export default defineConfig({
+  schema: path.join('prisma', 'schema'),
+});
+```
+
+---
+
+### `prisma migrate deploy` no encuentra las migraciones
+
+**Síntoma:**
+```
+No migration found in prisma/migrations
+Database schema is up to date!
+```
+Las carpetas de migraciones sí existen pero Prisma las ignora.
+
+**Causa:** Con el schema en un directorio (no un archivo único), `migrate deploy` no detecta las migraciones correctamente en algunos escenarios.
+
+**Solución:** Usar `prisma db push` en desarrollo para sincronizar el schema directo con la BD:
+
+```bash
+pnpm prisma db push
+```
+
+> `db push` no crea archivos de migración — es ideal para setups iniciales y desarrollo local. En producción sigue usando `prisma migrate deploy` una vez que las migraciones estén bien generadas.
+
+---
+
+### Cambié el tipo de la PK y el seed sigue con el comportamiento anterior
+
+**Síntoma:** Cambias `@id @default(uuid())` a `@id @default(autoincrement())` en el schema, pero los registros siguen insertándose con UUIDs (o con el comportamiento anterior).
+
+**Causa:** El Prisma Client generado en `src/generated/prisma` quedó desactualizado — no refleja los cambios del schema hasta que se regenere.
+
+**Solución:** Después de cualquier cambio en el schema, siempre regenerar:
+
+```bash
+pnpm prisma db push     # sincroniza el schema con la BD (ya llama a generate automáticamente)
+```
+
+O explícitamente:
+
+```bash
+pnpm prisma db push
+pnpm prisma generate
+```
+
+> **Regla general:** si el comportamiento en runtime no coincide con lo que defines en el schema, el primer paso es correr `prisma generate`.
+
+---
+
+### `prisma migrate reset` bloqueado (entorno automatizado)
+
+**Síntoma:**
+```
+Error: Prisma Migrate detected that it was invoked by [herramienta].
+You are attempting a highly dangerous action...
+```
+
+**Causa:** Prisma detecta ciertos contextos automatizados y bloquea comandos destructivos por seguridad.
+
+**Solución:** Ejecutarlo directamente en tu terminal:
+
+```bash
+pnpm prisma migrate reset
+```
+
+> Este comando borra **todos los datos** y re-aplica todas las migraciones desde cero. Úsalo solo en desarrollo, nunca en producción.
+
+---
+
+### El seed falla con "tabla no existe"
+
+**Síntoma:**
+```
+PrismaClientKnownRequestError: The table `public.Resource` does not exist
+```
+
+**Causa:** Las migraciones (o `db push`) no se han aplicado todavía — el seed corre pero las tablas no existen en la BD.
+
+**Solución:** Primero sincronizar el schema, luego correr el seed:
+
+```bash
+pnpm prisma db push
+pnpm seed
+```
+
+---
+
 ## Referencia rápida
 
 | Objetivo | Prisma |

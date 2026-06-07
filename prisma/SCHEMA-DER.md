@@ -378,3 +378,19 @@ const recentActions = await prisma.auditLog.findMany({
   include: { user: true }
 });
 ```
+### ERRORES
+
+```
+ psql postgresql://postgres:12042002@localhost:5432/facturador -c "SELECT migration_name, applied_steps_count, finished_at FROM
+   _prisma_migrations;" 2>&1
+      _prisma_migrations;" 2>&1)
+  ⎿   migration_name | applied_steps_count | finished_at
+     ----------------+---------------------+-------------
+     (0 rows)
+
+● El _prisma_migrations está vacío — Prisma no está aplicando las migraciones que existen. El problema es que con prisma.config.ts y
+  schema en directorio, el comando migrate deploy no las detecta correctamente.
+
+   Prueba con db push que sincroniza el schema directo:
+   pnpm prisma db push
+```
