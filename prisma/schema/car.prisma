@@ -1,0 +1,7 @@
+model Car {
+    id        BigInt   @id @default(autoincrement())
+    title     String
+    state     Boolean  @default(true)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
